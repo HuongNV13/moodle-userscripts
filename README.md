@@ -26,7 +26,7 @@ Install a userscript manager extension for your browser:
 
 ### Pull Helper Script (`pull.js`)
 
-A Moodle Pull Helper Script for Integrators that works on Jira Cloud. - [Install](https://github.com/HuongNV13/moodle-userscripts/raw/main/tpull.js)
+A Moodle Pull Helper Script for Integrators that works on Jira Cloud. - [Install](https://github.com/HuongNV13/moodle-userscripts/raw/main/pull.js)
 
 ## License
 
