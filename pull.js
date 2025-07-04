@@ -3,6 +3,8 @@
 // @version      1.1
 // @description  Moodle Pull Helper Script for Integrators
 // @author       Huong Nguyen
+// @homepage     https://github.com/HuongNV13/moodle-userscripts
+// @downloadURL  https://github.com/HuongNV13/moodle-userscripts/raw/main/pull.js
 // @match        https://moodle.atlassian.net/browse/*
 // @match        https://moodle.atlassian.net/issues/*
 // @require      https://code.jquery.com/jquery-3.6.0.min.js
