@@ -41,7 +41,7 @@
         },
         {
             shortname: '4.1',
-            customField: '10245',
+            customField: '10217',
             branchname: 'MOODLE_401_STABLE',
         },
     ];
