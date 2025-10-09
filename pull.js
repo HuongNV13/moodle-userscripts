@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Pull Helper Script
-// @version      1.1
+// @version      1.2
 // @description  Moodle Pull Helper Script for Integrators
 // @author       Huong Nguyen
 // @homepage     https://github.com/HuongNV13/moodle-userscripts
