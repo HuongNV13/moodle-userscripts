@@ -25,6 +25,11 @@
             branchname: 'main',
         },
         {
+            shortname: '5.1',
+            customField: '11075',
+            branchname: 'MOODLE_501_STABLE',
+        },
+        {
             shortname: '5.0',
             customField: '10218',
             branchname: 'MOODLE_500_STABLE',
