@@ -28,6 +28,12 @@ Install a userscript manager extension for your browser:
 
 A Moodle Pull Helper Script for Integrators that works on Jira Cloud. - [Install](https://github.com/HuongNV13/moodle-userscripts/raw/main/pull.js)
 
+### Jira Better Layout Script (`betterlayout.js`)
+
+A Jira Better Layout Script for Moodlers that works on Jira Cloud. - [Install](https://github.com/HuongNV13/moodle-userscripts/raw/main/betterlayout.js)
+ - Move the status transition buttons back to the right panel.
+ - Remove Fresk desk fields.
+
 ## License
 
 This work is released under the terms of the [GNU General Public License](http://www.gnu.org/copyleft/gpl.html), v3 or later.

@@ -218,10 +218,16 @@
         };
 
         // Use a longer delay to ensure Jira has fully loaded.
-        setTimeout(() => {
-            console.log("Starting to wait for custom field");
+        const startScript = () => {
+            if (typeof AJS === 'undefined') {
+                console.log("AJS not loaded yet, retrying...");
+                setTimeout(startScript, 1000);
+                return;
+            }
+            console.log("AJS loaded, starting to wait for custom field");
             waitForCustomField();
-        }, 2000);
+        };
+        setTimeout(startScript, 2000);
     };
     
     // Execute the script.
