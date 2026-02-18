@@ -5,8 +5,8 @@
 // @description  Jira Better Layout Script for Moodlers
 // @author       Huong Nguyen
 // @homepage     https://github.com/HuongNV13/moodle-userscripts
-// @downloadURL  https://github.com/HuongNV13/moodle-userscripts/raw/main/betterlayout.js
-// @updateURL    https://github.com/HuongNV13/moodle-userscripts/raw/main/betterlayout.js
+// @downloadURL  https://github.com/HuongNV13/moodle-userscripts/raw/main/betterlayout.user.js
+// @updateURL    https://github.com/HuongNV13/moodle-userscripts/raw/main/betterlayout.user.js
 // @match        https://moodle.atlassian.net/browse/*
 // @match        https://moodle.atlassian.net/issues/*
 // @require      https://code.jquery.com/jquery-3.6.0.min.js

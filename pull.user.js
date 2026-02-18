@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Pull Helper Script
 // @namespace    https://github.com/HuongNV13
-// @version      1.2
+// @version      1.3
 // @description  Moodle Pull Helper Script for Integrators
 // @author       Huong Nguyen
 // @homepage     https://github.com/HuongNV13/moodle-userscripts
-// @downloadURL  https://github.com/HuongNV13/moodle-userscripts/raw/main/pull.js
-// @updateURL    https://github.com/HuongNV13/moodle-userscripts/raw/main/pull.js
+// @downloadURL  https://github.com/HuongNV13/moodle-userscripts/raw/main/pull.user.js
+// @updateURL    https://github.com/HuongNV13/moodle-userscripts/raw/main/pull.user.js
 // @match        https://moodle.atlassian.net/browse/*
 // @match        https://moodle.atlassian.net/issues/*
 // @require      https://code.jquery.com/jquery-3.6.0.min.js
@@ -15,7 +15,7 @@
 // ==/UserScript==
 (function() {
     'use strict';
-    
+
     const userScript = function() {
         const selectors = {
             pullRepo: 'div[data-testid*="customfield_10244"] a',
@@ -158,12 +158,16 @@
                 console.log(`Pull branch for ${branch.shortname}:`, remoteBranchName);
 
                 branchContent += `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px; align-items: center;">
-                        <div style="font-weight: bold;">${branch.shortname}</div>
-                        <a href="${githubRepoName}/actions?query=branch%3A${remoteBranchName}">
-                            <img src="${githubRepoName}/actions/workflows/push.yml/badge.svg?branch=${remoteBranchName}" alt="Build status badge for the ${remoteBranchName} branch"/>
-                        </a>
-                        <button class="aui-button aui-button-secondary merge-btn" data-branch-index="${index}">Merge command</button>
+                    <div style="display: flex; margin-bottom: 4px; align-items: center;">
+                        <div style="flex: 1; font-weight: bold;">${branch.shortname}</div>
+                        <div style="flex: 1; display: flex; justify-content: center;">
+                            <a href="${githubRepoName}/actions?query=branch%3A${remoteBranchName}">
+                                <img src="${githubRepoName}/actions/workflows/push.yml/badge.svg?branch=${remoteBranchName}" alt="Build status badge for the ${remoteBranchName} branch"/>
+                            </a>
+                        </div>
+                        <div style="flex: 1; display: flex; justify-content: flex-end;">
+                            <button class="aui-button aui-button-secondary merge-btn" data-branch-index="${index}">Merge command</button>
+                        </div>
                     </div>
                 `;
             }
@@ -171,7 +175,7 @@
 
         // Add push command section.
         branchContent += `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; align-items: center; border-top: 1px solid rgba(11, 18, 14, 0.14); padding-top: 8px; margin-top: 8px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; align-items: center; border-top: 1px solid rgba(128, 128, 128, 0.3); padding-top: 8px; margin-top: 8px;">
                 <div style="font-weight: bold;">Push command</div>
                 <button class="aui-button aui-button-primary push-btn">Push command</button>
             </div>
@@ -184,7 +188,7 @@
             id: 'userscript_moodle_merger',
             html: branchContent,
             css: {
-                'border': '1px solid rgba(11, 18, 14, 0.14)',
+                'border': '1px solid rgba(128, 128, 128, 0.3)',
                 'border-radius': '4px',
                 'margin-bottom': '8px'
             }
@@ -208,28 +212,62 @@
 
         // Wait for custom field to be available.
         const waitForCustomField = () => {
-        console.log("Checking for custom field...");
-        if ($(selectors.pullRepo).length > 0 && $(selectors.target).length > 0) {
-            console.log("Custom field found, calling updateView");
-            updateView();
-        } else {
-            setTimeout(waitForCustomField, 1000);
-        }
-        };
-
-        // Use a longer delay to ensure Jira has fully loaded.
-        const startScript = () => {
-            if (typeof AJS === 'undefined') {
-                console.log("AJS not loaded yet, retrying...");
-                setTimeout(startScript, 1000);
+            console.log("Checking for custom field...");
+            // Check if our injected element already exists
+            if ($('#userscript_moodle_merger').length > 0) {
+                console.log("Userscript element already exists, skipping injection");
                 return;
             }
-            console.log("AJS loaded, starting to wait for custom field");
-            waitForCustomField();
+            
+            if ($(selectors.pullRepo).length > 0 && $(selectors.target).length > 0) {
+                console.log("Custom field found, calling updateView");
+                updateView();
+            } else {
+                setTimeout(waitForCustomField, 1000);
+            }
         };
+
+        // Use AJS.toInit if available, otherwise fallback to polling
+        const startScript = () => {
+            if (typeof AJS !== 'undefined' && typeof AJS.toInit === 'function') {
+                console.log("AJS available, using AJS.toInit");
+                AJS.toInit(() => {
+                    console.log("AJS ready, starting to wait for custom field");
+                    waitForCustomField();
+                });
+            } else if (typeof AJS === 'undefined') {
+                console.log("AJS not loaded yet, retrying...");
+                setTimeout(startScript, 1000);
+            } else {
+                // AJS exists but toInit not available, proceed anyway
+                console.log("AJS loaded without toInit, starting to wait for custom field");
+                waitForCustomField();
+            }
+        };
+
+        // Initialize on page load
         setTimeout(startScript, 2000);
+
+        // Watch for DOM changes (Jira SPA navigation)
+        const observer = new MutationObserver((mutations) => {
+            // Check if our injected element exists
+            if ($('#userscript_moodle_merger').length === 0) {
+                console.log("DOM changed and userscript element is missing, re-initializing...");
+                // Debounce: wait a bit before re-injecting to avoid multiple calls
+                clearTimeout(window.userscriptReinitTimeout);
+                window.userscriptReinitTimeout = setTimeout(() => {
+                    waitForCustomField();
+                }, 500);
+            }
+        });
+
+        // Observe the entire document for changes
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
     };
-    
+
     // Execute the script.
     userScript();
 })();

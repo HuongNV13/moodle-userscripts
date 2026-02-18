@@ -16,7 +16,13 @@ Install a userscript manager extension for your browser:
 
 ### Installing Scripts
 
-1. Copy the contents of any `.js` file from this repository
+1. Click the "Install" link next to any script below
+2. Tampermonkey will open an installation dialog
+3. Click "Install" to confirm
+4. The script will now run automatically on matching pages
+
+Alternative manual installation:
+1. Copy the contents of any `.user.js` file from this repository
 2. Open Tampermonkey dashboard in your browser
 3. Click "Create a new script"
 4. Paste the script content
@@ -24,13 +30,13 @@ Install a userscript manager extension for your browser:
 
 ## Available Scripts
 
-### Pull Helper Script (`pull.js`)
+### Pull Helper Script (`pull.user.js`)
 
-A Moodle Pull Helper Script for Integrators that works on Jira Cloud. - [Install](https://github.com/HuongNV13/moodle-userscripts/raw/main/pull.js)
+A Moodle Pull Helper Script for Integrators that works on Jira Cloud. - [Install](https://github.com/HuongNV13/moodle-userscripts/raw/main/pull.user.js)
 
-### Jira Better Layout Script (`betterlayout.js`)
+### Jira Better Layout Script (`betterlayout.user.js`)
 
-A Jira Better Layout Script for Moodlers that works on Jira Cloud. - [Install](https://github.com/HuongNV13/moodle-userscripts/raw/main/betterlayout.js)
+A Jira Better Layout Script for Moodlers that works on Jira Cloud. - [Install](https://github.com/HuongNV13/moodle-userscripts/raw/main/betterlayout.user.js)
  - Move the status transition buttons back to the right panel.
  - Remove Fresk desk fields.
 
