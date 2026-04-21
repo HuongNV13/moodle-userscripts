@@ -18,7 +18,7 @@
 
     const userScript = function() {
         const selectors = {
-            pullRepo: 'div[data-testid*="customfield_10244"] a',
+            pullRepo: 'div[data-testid="issue.views.field.single-line-text.read-view.customfield_10244"]',
             target: 'div[data-testid="issue.views.issue-base.context.status-and-approvals-wrapper.status-and-approval"]',
         };
         const branches = [
@@ -26,6 +26,11 @@
             shortname: 'Main',
             customField: '10221',
             branchname: 'main',
+        },
+        {
+            shortname: '5.2',
+            customField: '12227',
+            branchname: 'MOODLE_502_STABLE',
         },
         {
             shortname: '5.1',
@@ -81,11 +86,25 @@
         }
         };
 
+        const getGitRepo = () => {
+            const pullRepoNode = $(selectors.pullRepo).first();
+            if (!pullRepoNode.length) {
+                return '';
+            }
+
+            // Jira may render this field either as a link or plain text.
+            const hrefValue = pullRepoNode.find('a[href]').first().attr('href');
+            const textValue = pullRepoNode.text().trim();
+            const rawValue = (hrefValue && hrefValue.trim().length > 0) ? hrefValue.trim() : textValue;
+
+            return rawValue;
+        };
+
         const handleMergeCommand = (branch, pullBranch) => {
         console.log('Merge command for', branch.branchname, 'with pull branch:', pullBranch);
 
         // Get the Github repository URL.
-        let gitRepo = $(selectors.pullRepo).attr('href');
+        let gitRepo = getGitRepo();
         if (!gitRepo || !gitRepo.length) {
             console.error('Git repository URL not found');
             return;
@@ -129,7 +148,7 @@
 
         const updateView = () => {
         // Get the Github repository URL.
-        let gitRepo = $(selectors.pullRepo).attr('href');
+        let gitRepo = getGitRepo();
         if (!gitRepo || !gitRepo.length) {
             return;
         }
