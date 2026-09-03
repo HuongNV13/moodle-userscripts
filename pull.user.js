@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Pull Helper Script
 // @namespace    https://github.com/HuongNV13
-// @version      1.4
+// @version      1.5
 // @description  Moodle Pull Helper Script for Integrators
 // @author       Huong Nguyen
 // @homepage     https://github.com/HuongNV13/moodle-userscripts
@@ -59,31 +59,40 @@
         },
         ];
 
-        const showMessage = (type, message) => {
-        // Try AJS flag first.
-        if (typeof AJS !== 'undefined' && AJS.flag) {
-            AJS.flag({
-                type: type,
-                body: message,
-                close: 'auto'
-            });
-        } else {
-            // Fallback to custom notification.
-            const notification = $(`
-                <div class="aui-message aui-message-${type}" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 300px;">
-                    <p class="title">
-                        <strong>${type === 'success' ? 'Success!' : 'Error!'}</strong>
-                    </p>
-                    <p>${message}</p>
-                </div>
-            `);
-            $('body').append(notification);
+        const escapeHtml = (value) => {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        };
 
-            // Auto-remove after 3 seconds.
-            setTimeout(() => {
-                notification.fadeOut(() => notification.remove());
-            }, 3000);
-        }
+        const showMessage = (type, message) => {
+            // Try AJS flag first.
+            if (typeof AJS !== 'undefined' && AJS.flag) {
+                AJS.flag({
+                    type: type,
+                    body: message,
+                    close: 'auto'
+                });
+            } else {
+                // Fallback to custom notification.
+                const notification = $(`
+                    <div class="aui-message aui-message-${type}" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 300px;">
+                        <p class="title">
+                            <strong>${type === 'success' ? 'Success!' : 'Error!'}</strong>
+                        </p>
+                        <p>${escapeHtml(message)}</p>
+                    </div>
+                `);
+                $('body').append(notification);
+
+                // Auto-remove after 3 seconds.
+                setTimeout(() => {
+                    notification.fadeOut(() => notification.remove());
+                }, 3000);
+            }
         };
 
         const getGitRepo = () => {
@@ -101,132 +110,134 @@
         };
 
         const handleMergeCommand = (branch, pullBranch) => {
-        console.log('Merge command for', branch.branchname, 'with pull branch:', pullBranch);
+            console.log('Merge command for', branch.branchname, 'with pull branch:', pullBranch);
 
-        // Get the Github repository URL.
-        let gitRepo = getGitRepo();
-        if (!gitRepo || !gitRepo.length) {
-            console.error('Git repository URL not found');
-            return;
-        }
+            // Get the Github repository URL.
+            let gitRepo = getGitRepo();
+            if (!gitRepo || !gitRepo.length) {
+                console.error('Git repository URL not found');
+                showMessage('error', 'Git repository URL not found.');
+                return;
+            }
 
-        // Ensure proper git protocol.
-        gitRepo = gitRepo.replace('git://github.com', 'https://github.com');
+            // Ensure proper git protocol.
+            gitRepo = gitRepo.replace('git://github.com', 'https://github.com');
 
-        // Generate git command.
-        const gitCommand = `git checkout ${branch.branchname} && git reset --hard origin/${branch.branchname} && git fetch ${gitRepo} ${pullBranch} && git merge --no-ff --no-edit FETCH_HEAD`;
+            // Generate git command.
+            const gitCommand = `git checkout ${branch.branchname} && git reset --hard origin/${branch.branchname} && git fetch ${gitRepo} ${pullBranch} && git merge --no-ff --no-edit FETCH_HEAD`;
 
-        console.log('Generated git command:', gitCommand);
+            console.log('Generated git command:', gitCommand);
 
-        // Copy to clipboard.
-        navigator.clipboard.writeText(gitCommand).then(() => {
-            console.log('Git command copied to clipboard');
-            showMessage('success', `Git merge command for ${branch.shortname} has been copied to clipboard.`);
-        }).catch(err => {
-            console.error('Failed to copy to clipboard:', err);
-            showMessage('error', 'Failed to copy git merge command to clipboard.');
-        });
+            // Copy to clipboard.
+            navigator.clipboard.writeText(gitCommand).then(() => {
+                console.log('Git command copied to clipboard');
+                showMessage('success', `Git merge command for ${branch.shortname} has been copied to clipboard.`);
+            }).catch(err => {
+                console.error('Failed to copy to clipboard:', err);
+                showMessage('error', 'Failed to copy git merge command to clipboard.');
+            });
         };
 
         const handlePushCommand = (branchesToPush) => {
-        console.log('Push command for branches:', branchesToPush);
+            console.log('Push command for branches:', branchesToPush);
 
-        // Generate git push command.
-        const gitPushCommand = `git push origin ${branchesToPush.join(' ')}`;
+            // Generate git push command.
+            const gitPushCommand = `git push origin ${branchesToPush.join(' ')}`;
 
-        console.log('Generated git push command:', gitPushCommand);
+            console.log('Generated git push command:', gitPushCommand);
 
-        // Copy to clipboard.
-        navigator.clipboard.writeText(gitPushCommand).then(() => {
-            console.log('Git push command copied to clipboard');
-            showMessage('success', 'Git push command has been copied to clipboard.');
-        }).catch(err => {
-            console.error('Failed to copy to clipboard:', err);
-            showMessage('error', 'Failed to copy git push command to clipboard.');
-        });
+            // Copy to clipboard.
+            navigator.clipboard.writeText(gitPushCommand).then(() => {
+                console.log('Git push command copied to clipboard');
+                showMessage('success', 'Git push command has been copied to clipboard.');
+            }).catch(err => {
+                console.error('Failed to copy to clipboard:', err);
+                showMessage('error', 'Failed to copy git push command to clipboard.');
+            });
         };
 
         const updateView = () => {
-        // Get the Github repository URL.
-        let gitRepo = getGitRepo();
-        if (!gitRepo || !gitRepo.length) {
-            return;
-        }
-        // https://github.blog/2021-09-01-improving-git-protocol-security-github/#no-more-unauthenticated-git.
-        gitRepo = gitRepo.replace('git://github.com', 'https://github.com');
-        const githubRepoName = gitRepo.replace('moodle.git', 'moodle');
-
-        // Store pullBranch data for each branch
-        const branchData = [];
-        const availableBranches = [];
-
-        // Create content for branches
-        let branchContent = '<div style="padding-left: 8px; padding-right: 8px;"><h2 style="font-size: 1em;">Integration</h2>';
-
-        branches.forEach((branch, index) => {
-            // Get the pullBranch for this branch.
-            const pullBranchSelector = `div[data-testid="issue.views.field.single-line-text.read-view.customfield_${branch.customField}"]`;
-            const pullBranchNode = $(pullBranchSelector);
-            if (pullBranchNode.length) {
-                const remoteBranchName = pullBranchNode.text().trim();
-
-                // Store branch data with pullBranch.
-                branchData[index] = { ...branch, remoteBranchName };
-                availableBranches.push(branch.branchname);
-
-                console.log(`Pull branch for ${branch.shortname}:`, remoteBranchName);
-
-                branchContent += `
-                    <div style="display: flex; margin-bottom: 4px; align-items: center;">
-                        <div style="flex: 1; font-weight: bold;">${branch.shortname}</div>
-                        <div style="flex: 1; display: flex; justify-content: center;">
-                            <a href="${githubRepoName}/actions?query=branch%3A${remoteBranchName}">
-                                <img src="${githubRepoName}/actions/workflows/push.yml/badge.svg?branch=${remoteBranchName}" alt="Build status badge for the ${remoteBranchName} branch"/>
-                            </a>
-                        </div>
-                        <div style="flex: 1; display: flex; justify-content: flex-end;">
-                            <button class="aui-button aui-button-secondary merge-btn" data-branch-index="${index}">Merge command</button>
-                        </div>
-                    </div>
-                `;
+            // Get the Github repository URL.
+            let gitRepo = getGitRepo();
+            if (!gitRepo || !gitRepo.length) {
+                return;
             }
-        });
+            // https://github.blog/2021-09-01-improving-git-protocol-security-github/#no-more-unauthenticated-git.
+            gitRepo = gitRepo.replace('git://github.com', 'https://github.com');
+            const githubRepoName = escapeHtml(gitRepo.replace('moodle.git', 'moodle'));
 
-        // Add push command section.
-        branchContent += `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; align-items: center; border-top: 1px solid rgba(128, 128, 128, 0.3); padding-top: 8px; margin-top: 8px;">
-                <div style="font-weight: bold;">Push command</div>
-                <button class="aui-button aui-button-primary push-btn">Push command</button>
-            </div>
-        `;
+            // Store pullBranch data for each branch
+            const branchData = [];
+            const availableBranches = [];
 
-        branchContent += '</div>';
+            // Create content for branches
+            let branchContent = '<div style="padding-left: 8px; padding-right: 8px;"><h2 style="font-size: 1em;">Integration</h2>';
 
-        // Create empty div with id userscript_moodle_merger.
-        const userscriptDiv = $('<div>', {
-            id: 'userscript_moodle_merger',
-            html: branchContent,
-            css: {
-                'border': '1px solid rgba(128, 128, 128, 0.3)',
-                'border-radius': '4px',
-                'margin-bottom': '8px'
-            }
-        });
+            branches.forEach((branch, index) => {
+                // Get the pullBranch for this branch.
+                const pullBranchSelector = `div[data-testid="issue.views.field.single-line-text.read-view.customfield_${branch.customField}"]`;
+                const pullBranchNode = $(pullBranchSelector);
+                if (pullBranchNode.length) {
+                    const remoteBranchName = pullBranchNode.text().trim();
+                    const safeRemoteBranchName = escapeHtml(remoteBranchName);
 
-        // Insert it after selectors.target.
-        $(selectors.target).after(userscriptDiv);
+                    // Store branch data with pullBranch.
+                    branchData[index] = { ...branch, remoteBranchName };
+                    availableBranches.push(branch.branchname);
 
-        // Bind click events to merge buttons
-        $('.merge-btn').on('click', function() {
-            const branchIndex = $(this).data('branch-index');
-            const branchWithPullBranch = branchData[branchIndex];
-            handleMergeCommand(branchWithPullBranch, branchWithPullBranch.remoteBranchName);
-        });
+                    console.log(`Pull branch for ${branch.shortname}:`, remoteBranchName);
 
-        // Bind click event to push button.
-        $('.push-btn').on('click', function() {
-            handlePushCommand(availableBranches);
-        });
+                    branchContent += `
+                        <div style="display: flex; margin-bottom: 4px; align-items: center;">
+                            <div style="flex: 1; font-weight: bold;">${escapeHtml(branch.shortname)}</div>
+                            <div style="flex: 1; display: flex; justify-content: center;">
+                                <a href="${githubRepoName}/actions?query=branch%3A${safeRemoteBranchName}">
+                                    <img src="${githubRepoName}/actions/workflows/push.yml/badge.svg?branch=${safeRemoteBranchName}" alt="Build status badge for the ${safeRemoteBranchName} branch"/>
+                                </a>
+                            </div>
+                            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                                <button class="aui-button aui-button-secondary merge-btn" data-branch-index="${index}">Merge command</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            // Add push command section.
+            branchContent += `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; align-items: center; border-top: 1px solid rgba(128, 128, 128, 0.3); padding-top: 8px; margin-top: 8px;">
+                    <div style="font-weight: bold;">Push command</div>
+                    <button class="aui-button aui-button-primary push-btn">Push command</button>
+                </div>
+            `;
+
+            branchContent += '</div>';
+
+            // Create empty div with id userscript_moodle_merger.
+            const userscriptDiv = $('<div>', {
+                id: 'userscript_moodle_merger',
+                html: branchContent,
+                css: {
+                    'border': '1px solid rgba(128, 128, 128, 0.3)',
+                    'border-radius': '4px',
+                    'margin-bottom': '8px'
+                }
+            });
+
+            // Insert it after selectors.target.
+            $(selectors.target).after(userscriptDiv);
+
+            // Bind click events to merge buttons
+            $('.merge-btn').on('click', function() {
+                const branchIndex = $(this).data('branch-index');
+                const branchWithPullBranch = branchData[branchIndex];
+                handleMergeCommand(branchWithPullBranch, branchWithPullBranch.remoteBranchName);
+            });
+
+            // Bind click event to push button.
+            $('.push-btn').on('click', function() {
+                handlePushCommand(availableBranches);
+            });
         };
 
         // Wait for custom field to be available.
